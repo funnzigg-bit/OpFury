@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { MOCK_MARKETS, MOCK_WEATHER } from '@/lib/mock-data';
-import { fetchRealNews, fetchRealTweets, fetchRealSummary, NewsItem, Tweet, AISummary } from '@/services/ai-service';
+import { NewsItem, Tweet, AISummary } from '@/services/ai-service';
 
 export type { NewsItem, Tweet, AISummary };
 
@@ -27,11 +27,13 @@ export const useNews = () => {
   return useQuery({
     queryKey: ['news'],
     queryFn: async () => {
-      const news = await fetchRealNews();
-      return news.length > 0 ? news : [];
+      const response = await fetch('/api/news');
+      if (!response.ok) throw new Error('Failed to fetch news');
+      const data = await response.json();
+      return data;
     },
-    refetchInterval: false, // Disable auto-refetch to save quota
-    staleTime: 1000 * 60 * 30, // Consider data fresh for 30 minutes
+    refetchInterval: 60000 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 };
@@ -40,11 +42,13 @@ export const useTweets = () => {
   return useQuery({
     queryKey: ['tweets'],
     queryFn: async () => {
-      const tweets = await fetchRealTweets();
-      return tweets.length > 0 ? tweets : [];
+      const response = await fetch('/api/tweets');
+      if (!response.ok) throw new Error('Failed to fetch tweets');
+      const data = await response.json();
+      return data;
     },
-    refetchInterval: false, // Disable auto-refetch to save quota
-    staleTime: 1000 * 60 * 30, // Consider data fresh for 30 minutes
+    refetchInterval: 60000 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 };
@@ -53,13 +57,17 @@ export const useMarkets = () => {
   return useQuery({
     queryKey: ['markets'],
     queryFn: async () => {
-      await delay(300);
-      // Simulate price fluctuation
-      return MOCK_MARKETS.map(stock => ({
-        ...stock,
-        price: stock.price + (Math.random() - 0.5) * 2,
-        change: stock.change + (Math.random() - 0.5) * 0.5
-      }));
+      const response = await fetch('/api/markets');
+      if (!response.ok) {
+         // Fallback to mock if API fails
+         await delay(300);
+         return MOCK_MARKETS.map(stock => ({
+            ...stock,
+            price: stock.price + (Math.random() - 0.5) * 2,
+            change: stock.change + (Math.random() - 0.5) * 0.5
+          }));
+      }
+      return await response.json();
     },
     refetchInterval: 5000, // 5s for markets
   });
@@ -69,8 +77,12 @@ export const useWeather = () => {
   return useQuery({
     queryKey: ['weather'],
     queryFn: async () => {
-      await delay(400);
-      return MOCK_WEATHER;
+      const response = await fetch('/api/weather');
+      if (!response.ok) {
+        await delay(400);
+        return MOCK_WEATHER;
+      }
+      return await response.json();
     },
     refetchInterval: 300000, // 5m
   });
@@ -169,7 +181,9 @@ export const useSummary = () => {
   return useQuery({
     queryKey: ['summary'],
     queryFn: async () => {
-      return await fetchRealSummary();
+      const response = await fetch('/api/summary');
+      if (!response.ok) throw new Error('Failed to fetch summary');
+      return await response.json();
     },
     refetchInterval: 300000, // 5m
   });
