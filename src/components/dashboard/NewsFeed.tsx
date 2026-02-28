@@ -33,20 +33,29 @@ export const NewsFeed = () => {
                   {formatDistanceToNow(new Date(item.time), { addSuffix: true })}
                 </span>
               </div>
-              <a 
-                href={item.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block group"
-              >
-                <h4 className="text-sm font-medium text-zinc-200 group-hover:text-white leading-snug mb-1">
-                  {item.title}
-                </h4>
+              <div className="block group">
+                <a 
+                  href={item.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <h4 className="text-sm font-medium text-zinc-200 hover:text-white leading-snug mb-1 transition-colors">
+                    {item.title}
+                  </h4>
+                </a>
                 <div className="flex items-center text-xs text-zinc-500">
-                  <span className="font-semibold text-zinc-400">{item.source}</span>
-                  <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <a 
+                    href={item.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="font-semibold text-zinc-400 hover:text-sky-400 hover:underline transition-colors flex items-center"
+                  >
+                    {item.source}
+                    <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </a>
                 </div>
-              </a>
+              </div>
             </div>
           ))}
         </div>

@@ -1,8 +1,10 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useFlights } from '@/hooks/use-queries';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { Plane } from 'lucide-react';
 
 // Fix Leaflet icon issue
 const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
@@ -17,13 +19,47 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+// Custom flight icons
+const createFlightIcon = (type: 'military' | 'commercial' | 'drone', heading: number) => {
+  const color = type === 'military' ? '#ef4444' : type === 'drone' ? '#f59e0b' : '#3b82f6';
+  const size = type === 'drone' ? 20 : 24;
+  
+  // Create a rotated SVG string
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${heading - 45}deg); filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));">
+      <path d="M2 12h20" />
+      <path d="M13 2l9 10-9 10" />
+    </svg>
+  `;
+  
+  // Better plane icon path
+  const planeSvg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="1" style="transform: rotate(${heading - 45}deg); filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.8));">
+    <path d="M2 12h20M13 2l9 10-9 10" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  // Use a divIcon to render the SVG
+  return L.divIcon({
+    html: `<div style="display: flex; align-items: center; justify-content: center;">${planeSvg}</div>`,
+    className: 'bg-transparent',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+};
+
 export const MapWidget = () => {
   const position: [number, number] = [32.4279, 53.6880]; // Iran center
+  const { data: flights } = useFlights();
 
   return (
     <Card className="h-full flex flex-col border-zinc-800 bg-zinc-950/50 overflow-hidden">
-      <CardHeader className="pb-2 bg-zinc-950 z-10">
+      <CardHeader className="pb-2 bg-zinc-950 z-10 flex flex-row items-center justify-between">
         <CardTitle>Live Theater Map</CardTitle>
+        <div className="flex gap-3 text-[10px] uppercase font-mono text-zinc-400">
+             <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> MIL</div>
+             <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> CIV</div>
+             <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> UAV</div>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 relative min-h-[400px]">
         <MapContainer 
@@ -69,6 +105,24 @@ export const MapWidget = () => {
               Kermanshah <br /> Missile Site Strikes Reported
             </Popup>
           </Marker>
+
+          {/* Flights */}
+          {flights?.map(flight => (
+            <Marker 
+              key={flight.id} 
+              position={[flight.lat, flight.lng]} 
+              icon={createFlightIcon(flight.type, flight.heading)}
+            >
+              <Popup className="bg-zinc-950 border border-zinc-800 text-zinc-100">
+                <div className="font-mono text-xs">
+                  <div className="font-bold text-sm mb-1">{flight.callsign}</div>
+                  <div className="text-zinc-400">{flight.type.toUpperCase()}</div>
+                  <div>Alt: {flight.altitude.toLocaleString()} ft</div>
+                  <div>Spd: {flight.speed} kts</div>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
 
         </MapContainer>
         

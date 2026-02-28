@@ -1,21 +1,59 @@
 import { NewsItem, Tweet, StockData, WeatherData, AISummary } from '@/hooks/use-queries';
 
 export const MOCK_NEWS: NewsItem[] = [
-  { id: '1', title: "Live updates: US and Israel attack Iran as Tehran retaliates across Middle East", source: "CNN", time: new Date(Date.now() - 8 * 60000).toISOString(), category: "strikes", url: "#" },
-  { id: '2', title: "2026 Israeli–United States strikes on Iran", source: "Wikipedia", time: new Date(Date.now() - 19 * 60000).toISOString(), category: "strikes", url: "#" },
-  { id: '3', title: "Live updates: U.S. and Israel launch attack on Iran as Trump calls for regime change", source: "Washington Post", time: new Date(Date.now() - 12 * 60000).toISOString(), category: "strikes", url: "#" },
-  { id: '4', title: "Oil prices surge 5% amid Strait of Hormuz closure fears", source: "Bloomberg", time: new Date(Date.now() - 45 * 60000).toISOString(), category: "shipping", url: "#" },
-  { id: '5', title: "Explosions reported near Isfahan nuclear facility", source: "Reuters", time: new Date(Date.now() - 25 * 60000).toISOString(), category: "strikes", url: "#" },
-  { id: '6', title: "Iran vows 'crushing response' to 'Zionist aggression'", source: "Al Jazeera", time: new Date(Date.now() - 30 * 60000).toISOString(), category: "politics", url: "#" },
-  { id: '7', title: "US Navy shoots down 3 drones in Red Sea", source: "USNI News", time: new Date(Date.now() - 60 * 60000).toISOString(), category: "shipping", url: "#" },
-  { id: '8', title: "Global markets rattle as conflict escalates", source: "CNBC", time: new Date(Date.now() - 90 * 60000).toISOString(), category: "other", url: "#" },
+  { id: '1', title: "Live updates: US and Israel attack Iran as Tehran retaliates across Middle East", source: "CNN", time: new Date(Date.now() - 8 * 60000).toISOString(), category: "strikes", url: "https://www.google.com/search?q=CNN+Live+updates+US+and+Israel+attack+Iran" },
+  { id: '2', title: "2026 Israeli–United States strikes on Iran", source: "Wikipedia", time: new Date(Date.now() - 19 * 60000).toISOString(), category: "strikes", url: "https://en.wikipedia.org/wiki/Iran" },
+  { id: '3', title: "Live updates: U.S. and Israel launch attack on Iran as Trump calls for regime change", source: "Washington Post", time: new Date(Date.now() - 12 * 60000).toISOString(), category: "strikes", url: "https://www.google.com/search?q=Washington+Post+US+Israel+attack+Iran" },
+  { id: '4', title: "Oil prices surge 5% amid Strait of Hormuz closure fears", source: "Bloomberg", time: new Date(Date.now() - 45 * 60000).toISOString(), category: "shipping", url: "https://www.google.com/search?q=Bloomberg+Oil+prices+surge+Strait+of+Hormuz" },
+  { id: '5', title: "Explosions reported near Isfahan nuclear facility", source: "Reuters", time: new Date(Date.now() - 25 * 60000).toISOString(), category: "strikes", url: "https://www.google.com/search?q=Reuters+Explosions+Isfahan+nuclear+facility" },
+  { id: '6', title: "Iran vows 'crushing response' to 'Zionist aggression'", source: "Al Jazeera", time: new Date(Date.now() - 30 * 60000).toISOString(), category: "politics", url: "https://www.google.com/search?q=Al+Jazeera+Iran+vows+crushing+response" },
+  { id: '7', title: "US Navy shoots down 3 drones in Red Sea", source: "USNI News", time: new Date(Date.now() - 60 * 60000).toISOString(), category: "shipping", url: "https://www.google.com/search?q=USNI+News+US+Navy+shoots+down+drones+Red+Sea" },
+  { id: '8', title: "Global markets rattle as conflict escalates", source: "CNBC", time: new Date(Date.now() - 90 * 60000).toISOString(), category: "other", url: "https://www.google.com/search?q=CNBC+Global+markets+rattle+conflict+escalates" },
 ];
 
 export const MOCK_TWEETS: Tweet[] = [
-  { id: '1', author: "War Monitor", handle: "@WarMonitor3", content: "US airforce just pummelled an Iranian ballistic missile production site in Kermanshah", time: new Date(Date.now() - 5 * 60000).toISOString(), likes: 1200, retweets: 450 },
-  { id: '2', author: "OSINT Defender", handle: "@Osint613", content: "U.S. aircraft struck a missile production and launch facility in Kermanshah. Secondary explosions observed.", time: new Date(Date.now() - 10 * 60000).toISOString(), likes: 890, retweets: 320 },
+  { 
+    id: '1', 
+    author: "War Monitor", 
+    handle: "@WarMonitor3", 
+    content: "US airforce just pummelled an Iranian ballistic missile production site in Kermanshah", 
+    time: new Date(Date.now() - 5 * 60000).toISOString(), 
+    likes: 1200, 
+    retweets: 450,
+    media: {
+      type: 'video',
+      thumbnailUrl: 'https://picsum.photos/seed/explosion/600/340',
+      videoUrl: '#'
+    }
+  },
+  { 
+    id: '2', 
+    author: "OSINT Defender", 
+    handle: "@Osint613", 
+    content: "U.S. aircraft struck a missile production and launch facility in Kermanshah. Secondary explosions observed.", 
+    time: new Date(Date.now() - 10 * 60000).toISOString(), 
+    likes: 890, 
+    retweets: 320,
+    media: {
+      type: 'image',
+      thumbnailUrl: 'https://picsum.photos/seed/missile/600/340'
+    }
+  },
   { id: '3', author: "Intel Source", handle: "@Intelligencer41", content: "Kiriakou cites CIA pal: Trump decided to strike Iran Mon/Tue after 10-day ultimatum.", time: new Date(Date.now() - 15 * 60000).toISOString(), likes: 560, retweets: 120 },
-  { id: '4', author: "Aurora Intel", handle: "@AuroraIntel", content: "Reports of air defense activation over Tehran. Multiple interceptions.", time: new Date(Date.now() - 2 * 60000).toISOString(), likes: 2100, retweets: 800 },
+  { 
+    id: '4', 
+    author: "Aurora Intel", 
+    handle: "@AuroraIntel", 
+    content: "Reports of air defense activation over Tehran. Multiple interceptions.", 
+    time: new Date(Date.now() - 2 * 60000).toISOString(), 
+    likes: 2100, 
+    retweets: 800,
+    media: {
+      type: 'video',
+      thumbnailUrl: 'https://picsum.photos/seed/nightsky/600/340',
+      videoUrl: '#'
+    }
+  },
   { id: '5', author: "ELINT News", handle: "@ELINTNews", content: "VIDEO: Large explosion seen in the direction of Parchin military complex.", time: new Date(Date.now() - 20 * 60000).toISOString(), likes: 3400, retweets: 1500 },
 ];
 
