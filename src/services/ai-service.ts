@@ -1,6 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Safely initialize AI client
+const apiKey = process.env.GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export interface NewsItem {
   id: string;
@@ -26,7 +28,21 @@ export interface Tweet {
   };
 }
 
+// Helper to validate time
+const validateTime = (timeStr: any): string => {
+  if (!timeStr) return new Date().toISOString();
+  const date = new Date(timeStr);
+  if (isNaN(date.getTime())) {
+    return new Date().toISOString();
+  }
+  return date.toISOString();
+};
+
 export const fetchRealNews = async (): Promise<NewsItem[]> => {
+  if (!ai) {
+    console.warn("Gemini API Key missing - returning empty news");
+    return [];
+  }
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -43,7 +59,8 @@ export const fetchRealNews = async (): Promise<NewsItem[]> => {
     const data = JSON.parse(text);
     return data.map((item: any, index: number) => ({
       id: `news-${Date.now()}-${index}`,
-      ...item
+      ...item,
+      time: validateTime(item.time)
     }));
   } catch (error) {
     console.error("Failed to fetch real news:", error);
@@ -52,6 +69,10 @@ export const fetchRealNews = async (): Promise<NewsItem[]> => {
 };
 
 export const fetchRealTweets = async (): Promise<Tweet[]> => {
+  if (!ai) {
+    console.warn("Gemini API Key missing - returning empty tweets");
+    return [];
+  }
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -71,7 +92,7 @@ export const fetchRealTweets = async (): Promise<Tweet[]> => {
       author: item.author,
       handle: item.handle,
       content: item.content,
-      time: item.time,
+      time: validateTime(item.time),
       likes: item.likes,
       retweets: item.retweets,
       media: item.mediaType !== 'none' ? {
