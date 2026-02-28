@@ -25,7 +25,7 @@ function Dashboard() {
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
             <h1 className="text-lg font-bold tracking-tight text-white">
-              OPFURY<span className="text-red-600">LIVE</span>
+              OPERATION EPIC FURY <span className="text-red-600">LIVE</span>
             </h1>
             <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-900 text-zinc-400 border border-zinc-800 ml-2">
               OP. EPIC FURY
