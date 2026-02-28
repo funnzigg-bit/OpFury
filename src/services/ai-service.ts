@@ -40,44 +40,52 @@ const validateTime = (timeStr: any): string => {
 
 // Cache keys and duration (30 minutes)
 const CACHE_DURATION = 30 * 60 * 1000;
-const NEWS_CACHE_KEY = 'ai_news_cache_v2';
-const TWEETS_CACHE_KEY = 'ai_tweets_cache_v2';
+const NEWS_CACHE_KEY = 'ai_news_cache_v4';
+const TWEETS_CACHE_KEY = 'ai_tweets_cache_v4';
+const SUMMARY_CACHE_KEY = 'ai_summary_cache_v4';
+
+export interface AISummary {
+  text: string;
+  lastUpdated: string;
+}
+
+export const fetchRealSummary = async (): Promise<AISummary> => {
+  const cachedSummary = getFromCache<AISummary>(SUMMARY_CACHE_KEY);
+  if (cachedSummary) return cachedSummary;
+
+  if (!ai) {
+    return { text: "AI service unavailable.", lastUpdated: new Date().toISOString() };
+  }
+
+  try {
+    console.log("Fetching real summary from Gemini...");
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: "Provide a concise 2-sentence summary of the current geopolitical situation in the Middle East, focusing on US-Iran tensions. Be factual and neutral.",
+      config: {
+        tools: [{ googleSearch: {} }],
+      }
+    });
+
+    const text = response.text || "No summary available.";
+    const summary = {
+      text: text,
+      lastUpdated: new Date().toISOString()
+    };
+
+    saveToCache(SUMMARY_CACHE_KEY, summary);
+    return summary;
+  } catch (error) {
+    console.error("Failed to fetch summary:", error);
+    return { text: "Failed to load summary.", lastUpdated: new Date().toISOString() };
+  }
+};
 
 interface CacheEntry<T> {
   timestamp: number;
   data: T;
 }
-
-const getFromCache = <T>(key: string): T | null => {
-  try {
-    const cached = localStorage.getItem(key);
-    if (!cached) return null;
-    
-    const entry: CacheEntry<T> = JSON.parse(cached);
-    const now = Date.now();
-    
-    if (now - entry.timestamp < CACHE_DURATION) {
-      console.log(`[Cache Hit] Returning cached data for ${key}`);
-      return entry.data;
-    }
-    return null;
-  } catch (e) {
-    return null;
-  }
-};
-
-const saveToCache = <T>(key: string, data: T) => {
-  try {
-    const entry: CacheEntry<T> = {
-      timestamp: Date.now(),
-      data
-    };
-    localStorage.setItem(key, JSON.stringify(entry));
-  } catch (e) {
-    console.error("Failed to save to cache", e);
-  }
-};
-
+// ... existing code ...
 export const fetchRealNews = async (): Promise<NewsItem[]> => {
   // 1. Try Cache First
   const cachedNews = getFromCache<NewsItem[]>(NEWS_CACHE_KEY);
@@ -88,15 +96,18 @@ export const fetchRealNews = async (): Promise<NewsItem[]> => {
     return [];
   }
   try {
+    console.log("Fetching real news from Gemini...");
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: "Find the latest 8 breaking news headlines about the US-Iran conflict, Operation Epic Fury, or Middle East tensions from the last 24 hours. Return a valid JSON array (without markdown formatting) where each object has: title, source, time (ISO string), category (strikes, shipping, politics, or other), and url.",
+      contents: "You are a news aggregator. Use Google Search to find the absolute latest 8 breaking news headlines about the Middle East, US-Iran tensions, or major global conflicts from the last 24 hours. \n\nCRITICAL: You MUST use the googleSearch tool. Do not generate fictional news. If you cannot find recent news, return an empty array.\n\nReturn a valid JSON array (without markdown formatting) where each object has: title, source, time (ISO string), category (strikes, shipping, politics, or other), and url.",
       config: {
         tools: [{ googleSearch: {} }],
       }
     });
 
     let text = response.text || "[]";
+    console.log("Gemini News Response:", text.substring(0, 100) + "...");
+    
     // Clean markdown code blocks if present
     text = text.replace(/```json\n?|\n?```/g, "").trim();
     
@@ -114,19 +125,7 @@ export const fetchRealNews = async (): Promise<NewsItem[]> => {
     
     return newsItems;
   } catch (error: any) {
-    // Check for rate limits (429) or quota exhaustion
-    const isRateLimit = 
-      error?.status === 429 || 
-      error?.code === 429 ||
-      error?.message?.includes('429') || 
-      error?.message?.includes('quota') ||
-      error?.status === "RESOURCE_EXHAUSTED";
-
-    if (isRateLimit) {
-       console.warn("Gemini Rate Limit Exceeded: Returning empty list (User requested no mock data).");
-       return [];
-    }
-    
+    // ... error handling ...
     console.error("Failed to fetch real news:", error);
     return [];
   }
@@ -142,15 +141,18 @@ export const fetchRealTweets = async (): Promise<Tweet[]> => {
     return [];
   }
   try {
+    console.log("Fetching real tweets from Gemini...");
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: "Retrieve 5 recent, high-engagement social media posts or news updates regarding the current US-Iran situation and Operation Epic Fury from the last 48 hours. Focus on factual reporting and major events. Return the data STRICTLY as a raw JSON array (no markdown, no conversational text). Each object must have: author, handle, content, time, likes (integer), retweets (integer), mediaType ('video', 'image', or 'none').",
+      contents: "You are a social media monitor. Use Google Search to find 5 real, recent, high-engagement social media posts or news updates regarding the Middle East situation from the last 24 hours. \n\nCRITICAL: You MUST use the googleSearch tool. Do not invent tweets. \n\nReturn the data STRICTLY as a raw JSON array (no markdown). Each object must have: author, handle, content, time, likes (integer), retweets (integer), mediaType ('video', 'image', or 'none').",
       config: {
         tools: [{ googleSearch: {} }],
       }
     });
+// ... existing code ...
 
     let text = response.text || "[]";
+    console.log("Gemini Tweets Response:", text.substring(0, 100) + "...");
     
     // Attempt to find JSON array in the text if it's wrapped in text
     const jsonMatch = text.match(/\[[\s\S]*\]/);

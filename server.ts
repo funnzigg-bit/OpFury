@@ -35,50 +35,46 @@ db.exec(`
 
 // Seed Initial Data (Idempotent)
 const seedData = () => {
-  const newsCount = db.prepare('SELECT count(*) as count FROM news').get() as { count: number };
-  if (newsCount.count === 0) {
-    const insertNews = db.prepare('INSERT INTO news (title, source, time, category, url) VALUES (?, ?, ?, ?, ?)');
-    insertNews.run("Live updates: US and Israel attack Iran as Tehran retaliates across Middle East", "CNN", new Date(Date.now() - 8 * 60000).toISOString(), "strikes", "#");
-    insertNews.run("2026 Israeli–United States strikes on Iran", "Wikipedia", new Date(Date.now() - 19 * 60000).toISOString(), "strikes", "#");
-    insertNews.run("Live updates: U.S. and Israel launch attack on Iran as Trump calls for regime change", "Washington Post", new Date(Date.now() - 12 * 60000).toISOString(), "strikes", "#");
-    insertNews.run("Oil prices surge 5% amid Strait of Hormuz closure fears", "Bloomberg", new Date(Date.now() - 45 * 60000).toISOString(), "shipping", "#");
-    insertNews.run("Explosions reported near Isfahan nuclear facility", "Reuters", new Date(Date.now() - 25 * 60000).toISOString(), "strikes", "#");
-    insertNews.run("Iran vows 'crushing response' to 'Zionist aggression'", "Al Jazeera", new Date(Date.now() - 30 * 60000).toISOString(), "politics", "#");
-    insertNews.run("US Navy shoots down 3 drones in Red Sea", "USNI News", new Date(Date.now() - 60 * 60000).toISOString(), "shipping", "#");
-    insertNews.run("Global markets rattle as conflict escalates", "CNBC", new Date(Date.now() - 90 * 60000).toISOString(), "other", "#");
-  }
-
-  const tweetCount = db.prepare('SELECT count(*) as count FROM tweets').get() as { count: number };
-  if (tweetCount.count === 0) {
-    const insertTweet = db.prepare('INSERT INTO tweets (author, handle, content, time, likes, retweets) VALUES (?, ?, ?, ?, ?, ?)');
-    insertTweet.run("War Monitor", "@WarMonitor3", "US airforce just pummelled an Iranian ballistic missile production site in Kermanshah", new Date(Date.now() - 5 * 60000).toISOString(), 1200, 450);
-    insertTweet.run("OSINT Defender", "@Osint613", "U.S. aircraft struck a missile production and launch facility in Kermanshah. Secondary explosions observed.", new Date(Date.now() - 10 * 60000).toISOString(), 890, 320);
-    insertTweet.run("Intel Source", "@Intelligencer41", "Kiriakou cites CIA pal: Trump decided to strike Iran Mon/Tue after 10-day ultimatum.", new Date(Date.now() - 15 * 60000).toISOString(), 560, 120);
-    insertTweet.run("Aurora Intel", "@AuroraIntel", "Reports of air defense activation over Tehran. Multiple interceptions.", new Date(Date.now() - 2 * 60000).toISOString(), 2100, 800);
-    insertTweet.run("ELINT News", "@ELINTNews", "VIDEO: Large explosion seen in the direction of Parchin military complex.", new Date(Date.now() - 20 * 60000).toISOString(), 3400, 1500);
-  }
-
-  const summaryCount = db.prepare('SELECT count(*) as count FROM summary').get() as { count: number };
-  if (summaryCount.count === 0) {
-    const insertSummary = db.prepare('INSERT INTO summary (text, lastUpdated) VALUES (?, ?)');
-    insertSummary.run(
-      "US and Israel launched strikes on Iran under Operation Epic Fury, targeting nuclear and missile sites. Iran retaliated with missiles on US bases. Explosions in Tehran, Kermanshah. Trump calls for regime change.",
-      new Date().toISOString()
-    );
-  }
+  // No mock data seeding
 };
 
 seedData();
 
 // API Routes
-app.get('/api/news', (req, res) => {
-  const news = db.prepare('SELECT * FROM news ORDER BY time DESC LIMIT 20').all();
-  res.json(news);
+app.get('/api/news', async (req, res) => {
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: "Find 5 latest breaking news headlines about the Middle East. Return JSON array with title, source, time, category, url.",
+        config: { responseMimeType: "application/json" }
+      });
+      res.json(JSON.parse(response.text || "[]"));
+      return;
+    } catch (e) {
+      console.error("Server news fetch failed", e);
+    }
+  }
+  res.json([]);
 });
 
-app.get('/api/tweets', (req, res) => {
-  const tweets = db.prepare('SELECT * FROM tweets ORDER BY time DESC LIMIT 20').all();
-  res.json(tweets);
+app.get('/api/tweets', async (req, res) => {
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: "Generate 5 realistic tweets about current Middle East events. Return JSON array with author, handle, content, time, likes, retweets.",
+        config: { responseMimeType: "application/json" }
+      });
+      res.json(JSON.parse(response.text || "[]"));
+      return;
+    } catch (e) {
+      console.error("Server tweets fetch failed", e);
+    }
+  }
+  res.json([]);
 });
 
 app.get('/api/markets', (req, res) => {
@@ -147,15 +143,7 @@ async function startServer() {
   app.get('/api/tweets', (req, res) => {
     try {
       const tweets = db.prepare('SELECT * FROM tweets ORDER BY time DESC LIMIT 20').all();
-      if (tweets && tweets.length > 0) {
-        res.json(tweets);
-      } else {
-        // Fallback if DB is empty for some reason
-        res.json([
-          { id: 1, author: "War Monitor", handle: "@WarMonitor3", content: "US airforce just pummelled an Iranian ballistic missile production site in Kermanshah", time: new Date().toISOString(), likes: 1200, retweets: 450 },
-          { id: 2, author: "OSINT Defender", handle: "@Osint613", content: "U.S. aircraft struck a missile production and launch facility in Kermanshah. Secondary explosions observed.", time: new Date().toISOString(), likes: 890, retweets: 320 }
-        ]);
-      }
+      res.json(tweets || []);
     } catch (error) {
       console.error("Error fetching tweets:", error);
       res.status(500).json([]);

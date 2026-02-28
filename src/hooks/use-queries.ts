@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { MOCK_MARKETS, MOCK_WEATHER, MOCK_SUMMARY } from '@/lib/mock-data';
-import { fetchRealNews, fetchRealTweets, NewsItem, Tweet } from '@/services/ai-service';
+import { MOCK_MARKETS, MOCK_WEATHER } from '@/lib/mock-data';
+import { fetchRealNews, fetchRealTweets, fetchRealSummary, NewsItem, Tweet, AISummary } from '@/services/ai-service';
 
-export type { NewsItem, Tweet };
+export type { NewsItem, Tweet, AISummary };
 
 export interface StockData {
   symbol: string;
@@ -17,11 +17,6 @@ export interface WeatherData {
   condition: string;
   windSpeed: number;
   windDir: string;
-}
-
-export interface AISummary {
-  text: string;
-  lastUpdated: string;
 }
 
 // Helper to simulate network delay
@@ -174,8 +169,7 @@ export const useSummary = () => {
   return useQuery({
     queryKey: ['summary'],
     queryFn: async () => {
-      await delay(600);
-      return MOCK_SUMMARY;
+      return await fetchRealSummary();
     },
     refetchInterval: 300000, // 5m
   });
