@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDashboardStore } from '@/store';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WorldClock } from '@/components/dashboard/WorldClock';
@@ -10,12 +10,42 @@ import { MarketWidget } from '@/components/dashboard/MarketWidget';
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
 import { AISummary } from '@/components/dashboard/AISummary';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Activity, Radio } from 'lucide-react';
+import { Activity, Radio, Key } from 'lucide-react';
 
 const queryClient = new QueryClient();
 
+// Helper for AI Studio Key Selection
+declare global {
+  interface Window {
+    aistudio?: {
+      hasSelectedApiKey: () => Promise<boolean>;
+      openSelectKey: () => Promise<void>;
+    };
+  }
+}
+
 function Dashboard() {
   const { activeTab, setActiveTab } = useDashboardStore();
+  const [hasKey, setHasKey] = useState(true);
+
+  useEffect(() => {
+    const checkKey = async () => {
+      if (window.aistudio) {
+        const selected = await window.aistudio.hasSelectedApiKey();
+        setHasKey(selected);
+      }
+    };
+    checkKey();
+  }, []);
+
+  const handleConnectKey = async () => {
+    if (window.aistudio) {
+      await window.aistudio.openSelectKey();
+      setHasKey(true);
+      // Force reload to ensure backend picks up the key if injected
+      setTimeout(() => window.location.reload(), 1000);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-red-900 selection:text-white">
@@ -25,14 +55,20 @@ function Dashboard() {
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
             <h1 className="text-sm md:text-lg font-bold tracking-tight text-white truncate max-w-[200px] md:max-w-none">
-              OPERATION EPIC FURY <span className="text-red-600">LIVE</span>
+              GLOBAL CONFLICT MONITOR <span className="text-red-600">LIVE</span>
             </h1>
-            <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-900 text-zinc-400 border border-zinc-800 ml-2">
-              OP. EPIC FURY
-            </span>
           </div>
           
           <div className="flex items-center gap-4">
+            {!hasKey && (
+              <button 
+                onClick={handleConnectKey}
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded animate-pulse"
+              >
+                <Key className="w-3 h-3" />
+                CONNECT API KEY
+              </button>
+            )}
             <div className="hidden md:flex items-center gap-2 text-xs text-zinc-500 font-mono">
               <span className="flex items-center gap-1 text-emerald-500">
                 <Activity className="w-3 h-3" />
