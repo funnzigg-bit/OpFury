@@ -24,10 +24,10 @@ function Dashboard() {
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
-            <h1 className="text-lg font-bold tracking-tight text-white">
+            <h1 className="text-sm md:text-lg font-bold tracking-tight text-white truncate max-w-[200px] md:max-w-none">
               OPERATION EPIC FURY <span className="text-red-600">LIVE</span>
             </h1>
-            <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-900 text-zinc-400 border border-zinc-800 ml-2">
+            <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-900 text-zinc-400 border border-zinc-800 ml-2">
               OP. EPIC FURY
             </span>
           </div>
@@ -50,40 +50,40 @@ function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="p-2 md:p-4 md:h-[calc(100vh-7rem)] overflow-y-auto md:overflow-hidden">
+      <main className="p-2 md:p-4 lg:h-[calc(100vh-7rem)] overflow-y-auto lg:overflow-hidden">
         <Tabs className="h-full flex flex-col">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-2">
-             <div className="flex gap-2">
+             <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
                 <button 
                   onClick={() => setActiveTab('overview')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${activeTab === 'overview' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${activeTab === 'overview' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                   OVERVIEW
                 </button>
                 <button 
                   onClick={() => setActiveTab('intel')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${activeTab === 'intel' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${activeTab === 'intel' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                   INTEL FEED
                 </button>
              </div>
-             <div className="text-[10px] text-zinc-600 font-mono">
+             <div className="text-[10px] text-zinc-600 font-mono hidden md:block">
                LAST UPDATE: {new Date().toLocaleTimeString()}
              </div>
           </div>
 
-          <div className="flex-1 md:overflow-hidden">
+          <div className="flex-1 lg:overflow-hidden">
             {activeTab === 'overview' && (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:h-full">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-full">
                 {/* Left Column: News & Intel */}
-                <div className="md:col-span-3 flex flex-col gap-4 h-full overflow-y-auto">
+                <div className="lg:col-span-3 flex flex-col gap-4 h-full overflow-y-auto">
                   <div className="flex-1 min-h-[400px]">
                     <NewsFeed />
                   </div>
                 </div>
 
                 {/* Center Column: Map & Visuals */}
-                <div className="md:col-span-6 flex flex-col gap-4 h-full overflow-y-auto">
+                <div className="lg:col-span-6 flex flex-col gap-4 h-full overflow-y-auto">
                   <div className="shrink-0">
                     <AISummary />
                   </div>
@@ -96,7 +96,7 @@ function Dashboard() {
                 </div>
 
                 {/* Right Column: Social & Data */}
-                <div className="md:col-span-3 flex flex-col gap-4 h-full overflow-y-auto">
+                <div className="lg:col-span-3 flex flex-col gap-4 h-full overflow-y-auto">
                   <div className="flex-1 min-h-[400px]">
                     <SocialFeed />
                   </div>
@@ -111,7 +111,7 @@ function Dashboard() {
             )}
 
             {activeTab === 'intel' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-[800px]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full min-h-[800px] lg:min-h-0">
                 <NewsFeed />
                 <SocialFeed />
               </div>
