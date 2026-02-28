@@ -76,7 +76,7 @@ export const fetchRealTweets = async (): Promise<Tweet[]> => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: "Find 5 recent viral tweets or social media posts about Operation Epic Fury, US strikes on Iran, or explosions in Tehran. Include author name, handle, content, estimated time, likes count, and retweets count. Also try to find if they have media (video/image). Return a valid JSON array (without markdown formatting) where each object has: author, handle, content, time, likes, retweets, mediaType (video, image, or none).",
+      contents: "Find 5 highly popular and viral tweets (with high engagement) specifically about the current US vs Iran situation, Operation Epic Fury, or recent strikes. Focus on major updates, breaking news, or viral combat footage. Include author name, handle, content, estimated time, likes count (should be high), and retweets count. Also try to find if they have media (video/image). Return a valid JSON array (without markdown formatting) where each object has: author, handle, content, time, likes, retweets, mediaType (video, image, or none).",
       config: {
         tools: [{ googleSearch: {} }],
       }
