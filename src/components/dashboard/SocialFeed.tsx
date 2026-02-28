@@ -62,7 +62,7 @@ export const SocialFeed = () => {
                       {formatDistanceToNow(new Date(tweet.time), { addSuffix: true })}
                     </span>
                   </div>
-                  <p className="text-sm text-zinc-300 whitespace-pre-wrap mb-2 leading-relaxed break-words">
+                  <p className="text-sm text-zinc-300 whitespace-pre-wrap mb-2 leading-relaxed break-words w-full overflow-hidden">
                     {tweet.content}
                   </p>
                   

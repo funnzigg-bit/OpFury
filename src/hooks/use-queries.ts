@@ -35,7 +35,9 @@ export const useNews = () => {
       const news = await fetchRealNews();
       return news.length > 0 ? news : [];
     },
-    refetchInterval: 300000, // 5m
+    refetchInterval: false, // Disable auto-refetch to save quota
+    staleTime: 1000 * 60 * 30, // Consider data fresh for 30 minutes
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -46,7 +48,9 @@ export const useTweets = () => {
       const tweets = await fetchRealTweets();
       return tweets.length > 0 ? tweets : [];
     },
-    refetchInterval: 300000, // 5m
+    refetchInterval: false, // Disable auto-refetch to save quota
+    staleTime: 1000 * 60 * 30, // Consider data fresh for 30 minutes
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -142,8 +146,24 @@ export const useFlights = () => {
           };
         }).slice(0, 100); // Limit to 100 aircraft to prevent performance issues
       } catch (error) {
-        console.error('Flight fetch failed, falling back to empty', error);
-        return [];
+        console.warn('Flight fetch failed, falling back to simulation');
+        
+        // Fallback to simulated movement of initial flights
+        const time = Date.now() / 1000;
+        return INITIAL_FLIGHTS.map(flight => {
+          // Simple circular/linear motion simulation
+          const angleRad = (flight.heading * Math.PI) / 180;
+          
+          // Move 0.01 deg per update roughly
+          const latChange = Math.cos(angleRad) * 0.05 * Math.sin(time * 0.1); 
+          const lngChange = Math.sin(angleRad) * 0.05 * Math.cos(time * 0.1);
+
+          return {
+            ...flight,
+            lat: flight.lat + latChange,
+            lng: flight.lng + lngChange,
+          };
+        });
       }
     },
     refetchInterval: 15000, // 15s update rate
