@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Database from 'better-sqlite3';
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
@@ -40,69 +41,67 @@ const seedData = () => {
 
 seedData();
 
+// ... existing code ...
+// Helper to get API key from various possible environment variables
+const getApiKey = () => {
+  // Prioritize API_KEY as per platform guidelines
+  const key = process.env.API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (key) {
+    console.log(`Found API Key (length: ${key.length}, starts with: ${key.substring(0, 4)}...)`);
+  } else {
+    console.log("No API Key found in environment variables");
+  }
+  return key ? key.trim() : undefined;
+};
+
 // API Routes
 app.get('/api/news', async (req, res) => {
-  if (process.env.GEMINI_API_KEY) {
+  const apiKey = getApiKey();
+  if (apiKey) {
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: "Find 5 latest breaking news headlines about the Middle East. Return JSON array with title, source, time, category, url.",
         config: { responseMimeType: "application/json" }
       });
       res.json(JSON.parse(response.text || "[]"));
       return;
-    } catch (e) {
-      console.error("Server news fetch failed", e);
+    } catch (e: any) {
+      console.error("Server news fetch failed:", e.message);
     }
   }
   res.json([]);
 });
 
 app.get('/api/tweets', async (req, res) => {
-  if (process.env.GEMINI_API_KEY) {
+  const apiKey = getApiKey();
+  if (apiKey) {
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: "Generate 5 realistic tweets about current Middle East events. Return JSON array with author, handle, content, time, likes, retweets.",
         config: { responseMimeType: "application/json" }
       });
       res.json(JSON.parse(response.text || "[]"));
       return;
-    } catch (e) {
-      console.error("Server tweets fetch failed", e);
+    } catch (e: any) {
+      console.error("Server tweets fetch failed:", e.message);
     }
   }
   res.json([]);
 });
 
 app.get('/api/markets', (req, res) => {
-  // Mock live market data
-  res.json([
-    { symbol: 'LMT', price: 502.45, change: 12.30, changePercent: 2.51 },
-    { symbol: 'NOC', price: 455.12, change: 8.75, changePercent: 1.96 },
-    { symbol: 'RTX', price: 98.20, change: 1.45, changePercent: 1.50 },
-    { symbol: 'OIL (WTI)', price: 82.40, change: 3.20, changePercent: 4.04 },
-    { symbol: 'GOLD', price: 2150.00, change: 25.00, changePercent: 1.18 },
-  ]);
-});
-
-app.get('/api/weather', (req, res) => {
-  res.json([
-    { location: 'Tehran', temp: 63, condition: 'Clear', windSpeed: 12, windDir: 'WSW' },
-    { location: 'Tel Aviv', temp: 72, condition: 'Partly Cloudy', windSpeed: 8, windDir: 'NW' },
-    { location: 'Washington DC', temp: 45, condition: 'Rain', windSpeed: 15, windDir: 'NE' },
-  ]);
-});
-
+// ... existing code ...
 app.get('/api/summary', async (req, res) => {
-  // Check if we have a recent summary (cached for 1 hour)
   const lastSummary = db.prepare('SELECT * FROM summary ORDER BY id DESC LIMIT 1').get() as { text: string, lastUpdated: string } | undefined;
+  const apiKey = getApiKey();
   
-  if (process.env.GEMINI_API_KEY && (!lastSummary || new Date(lastSummary.lastUpdated).getTime() < Date.now() - 3600000)) {
+  if (apiKey && (!lastSummary || new Date(lastSummary.lastUpdated).getTime() < Date.now() - 3600000)) {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = new GoogleGenAI({ apiKey });
         
         // Fetch context
         const news = db.prepare('SELECT title FROM news ORDER BY time DESC LIMIT 10').all() as {title: string}[];
@@ -113,7 +112,7 @@ app.get('/api/summary', async (req, res) => {
         Tweets: ${tweets.map(t => t.content).join('; ')}`;
 
         const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3-flash-preview",
             contents: prompt
         });
         const text = result.text;
@@ -123,8 +122,8 @@ app.get('/api/summary', async (req, res) => {
             res.json({ text, lastUpdated: new Date().toISOString() });
             return;
         }
-    } catch (e) {
-        console.error("Gemini generation failed, falling back to cache", e);
+    } catch (e: any) {
+        console.error("Gemini generation failed, falling back to cache:", e.message);
     }
   }
 
